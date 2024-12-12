@@ -1,4 +1,6 @@
 package com.example.composelearnings.ui.viewmodel
 
-class AlarmScreenViewModel {
+import androidx.lifecycle.ViewModel
+
+class AlarmScreenViewModel: ViewModel() {
 }

@@ -51,7 +51,7 @@ fun BottomNavigationScreen() {
     )
 
     var selectedIconIndex by rememberSaveable {
-        mutableIntStateOf(0)
+        mutableIntStateOf(1)
     }
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -93,7 +93,6 @@ fun BottomNavigationScreen() {
 
                 1 -> {
                     ClockScreen(
-                        title = items[selectedIconIndex].title,
                         modifier = Modifier.padding(paddingValues)
                     )
                 }
