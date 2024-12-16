@@ -186,7 +186,7 @@ fun AlarmTimings(alarmUiState: AlarmUiState, viewModel: AlarmScreenViewModel) {
                     modifier = Modifier.weight(6f),
                     text = alarmUiState.selectedDay,
                     fontSize = 15.sp,
-                    fontWeight = FontWeight.W300
+                    fontWeight = FontWeight.W400
                 )
                 Switch(
                     modifier = Modifier.weight(1f),
@@ -215,9 +215,10 @@ fun AlarmTimings(alarmUiState: AlarmUiState, viewModel: AlarmScreenViewModel) {
 fun AlarmFeatures(alarmUiState: AlarmUiState, viewModel: AlarmScreenViewModel) {
     val context = LocalContext.current
     val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+    viewModel.setUpAlarmSound()
     val features = listOf(
         AlarmExtraFeatures(
-            title = "Ringtone",
+            title = alarmUiState.selectedAlarmSound?.title ?: "Select Alarm",
             image = R.drawable.ci__bell_ring,
         ),
         AlarmExtraFeatures(
@@ -235,10 +236,8 @@ fun AlarmFeatures(alarmUiState: AlarmUiState, viewModel: AlarmScreenViewModel) {
 
                 when (index) {
                     0 -> {
-                        viewModel.setUpAlarmSound()
                         viewModel.openAlarmSoundsDialog(true)
                     }
-
                     1 -> {
 
                         if (!alarmUiState.canVibrate) {
@@ -353,12 +352,13 @@ fun DaysButton(
         itemsIndexed(items = Common.daysOfWeek) { index, item ->
             IconToggleButton(
                 modifier = Modifier.size(30.dp), checked = checked.value, onCheckedChange = {
-                    Log.d("checked", "DaysButton: $checked")
                     checked.value = !checked.value
-                    viewModel.selectedDays(alarmUiState.selectedDays, index)
+                    viewModel.selectedDays(index, item,alarmUiState.selectedDaysIndexed)
                 }) {
+
+                val daySelected = alarmUiState.selectedDaysIndexed.any { it.second == index }
                 val tint =
-                    if (alarmUiState.selectedDays.contains(index)) MaterialTheme.colorScheme.primaryContainer else Color.White
+                    if (daySelected) MaterialTheme.colorScheme.primaryContainer else Color.White
 
                 Box(
                     modifier = Modifier
@@ -445,11 +445,13 @@ fun SoundsDialogueBox(viewModel: AlarmScreenViewModel, alarmUiState: AlarmUiStat
                                 .fillMaxWidth()
                                 .padding(5.dp)
                         ) {
+
                             Text(
                                 text = item.title,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.clickable {
-                                    viewModel.selectedAlarmSound(item)
+
+                                    viewModel.selectedAlarmSound(item.copy(isSelected = true))
                                     alarmUiState.mediaPlayer?.reset()
                                     val soundUri =
                                         Uri.parse("android.resource://" + context.packageName + "/" + item.sound)
@@ -459,11 +461,6 @@ fun SoundsDialogueBox(viewModel: AlarmScreenViewModel, alarmUiState: AlarmUiStat
                                             soundUri
                                         )
                                     )
-                                    if (mediaPlayerNew != null) {
-                                        Log.d("mediaPlayer", "SoundsDialogueBox: is not null")
-                                    } else {
-                                        Log.d("mediaPlayer", "SoundsDialogueBox: is null")
-                                    }
                                     mediaPlayerNew?.start()
                                 })
                             Spacer(modifier = Modifier.weight(1f))
