@@ -51,7 +51,7 @@ fun BottomNavigationScreen() {
     )
 
     var selectedIconIndex by rememberSaveable {
-        mutableIntStateOf(1)
+        mutableIntStateOf(0)
     }
     Surface(
         modifier = Modifier.fillMaxSize(),

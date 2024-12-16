@@ -11,3 +11,17 @@ data class BottomNavigationItem(
     val unselectedIcon: Int
 )
 
+
+data class AlarmSounds(
+    val title: String,
+    val sound: Int,
+    val isSelected: Boolean = false
+)
+
+data class SelectedDays(
+    val day: String,
+    val index: Int
+)
+//data class AddNewAlarm(
+//
+//)
