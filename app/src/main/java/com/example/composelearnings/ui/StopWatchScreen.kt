@@ -1,0 +1,185 @@
+package com.example.composelearnings.ui
+
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconToggleButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.composelearnings.R
+import com.example.composelearnings.ui.viewmodel.StopWatchScreenViewModel
+
+@Composable
+fun StopWatchScreen(modifier: Modifier, viewModel: StopWatchScreenViewModel = viewModel()) {
+
+    val stopWatchUiState by viewModel.uiState.collectAsState()
+
+
+    Column(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        Row(modifier = Modifier.weight(4f), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(300.dp)
+                    .clip(CircleShape)
+                    .background(color = Color.DarkGray)
+                    .padding(8.dp)
+                    .clip(CircleShape)
+                    .background(color = MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
+
+            ){
+                Column{
+                    Text(text = "00", fontSize = 70.sp, fontWeight = FontWeight.W400)
+                    Row {
+                        Spacer(modifier = Modifier.width(30.dp))
+                        Text(text = "00", fontSize = 40.sp, fontWeight = FontWeight.W400)
+                    }
+
+                }
+
+            }
+        }
+
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RefreshButton(50.dp, Icons.Default.Refresh, viewModel, true) {
+
+            }
+            PlayPauseButtons(90.dp, viewModel, stopWatchUiState.isPlaying){
+                viewModel.onPlayPauseButtonClick(!stopWatchUiState.isPlaying)
+            }
+            Spacer(modifier = Modifier.size(50.dp))
+        }
+    }
+}
+
+@Composable
+fun RefreshButton(
+    size: Dp,
+    icon: ImageVector,
+    viewModel: StopWatchScreenViewModel,
+    value: Boolean = false,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+
+    ) {
+    var rotationAngle by remember { mutableStateOf(0f) }
+
+    val animatedRotation by animateFloatAsState(
+        targetValue = rotationAngle,
+        animationSpec = tween(durationMillis = 600, easing = LinearEasing)
+    )
+    IconToggleButton(
+        modifier = modifier.size(size),
+        checked = value,
+        onCheckedChange = {
+            rotationAngle += 360f
+            onClick()
+        }) {
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(CircleShape)
+                .background(color = MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = "Check",
+                modifier = Modifier.size(size / 3).rotate(animatedRotation),
+                tint = Color.Black
+            )
+        }
+    }
+}
+
+@Composable
+fun PlayPauseButtons(
+    size: Dp,
+    viewModel: StopWatchScreenViewModel,
+    isPlaying: Boolean = false,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    ) {
+
+
+    IconToggleButton(
+        modifier = modifier.size(size),
+        checked = isPlaying,
+        onCheckedChange = {
+            onClick()
+        }) {
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(CircleShape)
+                .background(color = MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isPlaying){
+                Image(
+                    painter = painterResource(id = R.drawable.material_symbols__pause),
+                    contentDescription = "pause",
+                    modifier = Modifier.size(20.dp)
+                )
+            }else{
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "Check",
+                    modifier = Modifier.size(size / 3)
+                )
+            }
+
+        }
+    }
+}

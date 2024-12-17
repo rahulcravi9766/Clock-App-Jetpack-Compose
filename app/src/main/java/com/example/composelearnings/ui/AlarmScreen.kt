@@ -1,13 +1,19 @@
 package com.example.composelearnings.ui
 
+import android.annotation.SuppressLint
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Context
-import android.media.MediaActionSound
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.VibrationEffect.createOneShot
 import android.os.Vibrator
+import android.provider.Settings
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.animateContentSize
@@ -59,7 +65,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,16 +83,21 @@ import com.example.composelearnings.R
 import com.example.composelearnings.data.AlarmExtraFeatures
 import com.example.composelearnings.ui.state.AlarmUiState
 import com.example.composelearnings.ui.viewmodel.AlarmScreenViewModel
+import com.example.composelearnings.utils.AlarmReceiver
 import com.example.composelearnings.utils.Common
 import java.util.Calendar
 
 
+@SuppressLint("NewApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AlarmScreen(modifier: Modifier, viewModel: AlarmScreenViewModel = viewModel()) {
     val miniPadding = dimensionResource(R.dimen.padding_mini)
     val alarmUiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+
 
     Scaffold(
         modifier = Modifier
@@ -114,11 +124,60 @@ fun AlarmScreen(modifier: Modifier, viewModel: AlarmScreenViewModel = viewModel(
             viewModel.openTimePicker(false)
         }, onDismiss = {
             viewModel.openTimePicker(false)
-        }, viewModel)
+        }, viewModel, alarmUiState)
     }
 
     if (alarmUiState.openAlarmsListDialog) {
         SoundsDialogueBox(viewModel, alarmUiState)
+    }
+    if (alarmUiState.hasAlarmScheduled) {
+        val intent = Intent(context, AlarmReceiver::class.java)
+        Log.d("AlarmReceiver", "Intent is not null ${intent}")
+        val alarmManager: AlarmManager = context.getSystemService(AlarmManager::class.java)
+
+
+        intent.apply {
+            if (alarmUiState.selectedAlarmSound == null) {
+                //val soundUri = "android.resource://" + context.packageName + "/" + item.sound
+                putExtra("soundUri", "android.resource://" + context.packageName + "/" + alarmUiState.alarmSound[0].sound)
+            } else {
+                putExtra("soundUri", "android.resource://" + context.packageName + "/" + alarmUiState.selectedAlarmSound?.sound)
+            }
+        }
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (alarmManager.canScheduleExactAlarms()) {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    alarmUiState.timeMillis,
+                    pendingIntent
+                )
+            } else {
+                requestExactAlarmPermission(context)
+            }
+        } else {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                alarmUiState.selectedTimeData?.timeInMillis ?: 0,
+                pendingIntent
+            )
+        }
+
+        val receiver = ComponentName(context, AlarmReceiver::class.java)
+        context.packageManager.setComponentEnabledSetting(
+            receiver,
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+            PackageManager.DONT_KILL_APP
+        )
+
     }
 }
 
@@ -127,7 +186,6 @@ fun AlarmScreen(modifier: Modifier, viewModel: AlarmScreenViewModel = viewModel(
 fun AlarmTimings(alarmUiState: AlarmUiState, viewModel: AlarmScreenViewModel) {
     var expandedState by remember { mutableStateOf(true) }
     var switchButtonState by remember { mutableStateOf(false) }
-    //val selectedDaysIndex = remember { mutableStateOf(mutableListOf<Int>()) }
     val checked = remember { mutableStateOf(false) }
     val rotationState by animateFloatAsState(
         targetValue = if (expandedState) 180f else 0f,
@@ -238,6 +296,7 @@ fun AlarmFeatures(alarmUiState: AlarmUiState, viewModel: AlarmScreenViewModel) {
                     0 -> {
                         viewModel.openAlarmSoundsDialog(true)
                     }
+
                     1 -> {
 
                         if (!alarmUiState.canVibrate) {
@@ -353,7 +412,7 @@ fun DaysButton(
             IconToggleButton(
                 modifier = Modifier.size(30.dp), checked = checked.value, onCheckedChange = {
                     checked.value = !checked.value
-                    viewModel.selectedDays(index, item,alarmUiState.selectedDaysIndexed)
+                    viewModel.selectedDays(index, item, alarmUiState.selectedDaysIndexed)
                 }) {
 
                 val daySelected = alarmUiState.selectedDaysIndexed.any { it.second == index }
@@ -382,9 +441,10 @@ fun OpenTimePicker(
     onConfirm: (TimePickerState) -> Unit,
     onDismiss: () -> Unit,
     viewModel: AlarmScreenViewModel,
+    alarmUiState: AlarmUiState,
 ) {
     val currentTime = Calendar.getInstance()
-
+    val context = LocalContext.current
     val timePickerState = if (viewModel.timePicker != null) {
         viewModel.timePicker
     } else {
@@ -414,8 +474,8 @@ fun OpenTimePicker(
         }
         Button(onClick = {
             timePickerState?.let {
-
                 onConfirm(it)
+                //    scheduleAlarm(context, alarmUiState)
             }
 
         }) {
@@ -429,7 +489,6 @@ fun OpenTimePicker(
 fun SoundsDialogueBox(viewModel: AlarmScreenViewModel, alarmUiState: AlarmUiState) {
     var showDialog by remember { mutableStateOf(true) }
     val context = LocalContext.current
-    //var mediaPlayer: MediaPlayer? = null
     Button(onClick = { showDialog = true }) {
         Text("Show Dialog")
     }
@@ -492,6 +551,55 @@ fun SoundsDialogueBox(viewModel: AlarmScreenViewModel, alarmUiState: AlarmUiStat
                 }
             }
         )
+    }
+}
+
+@SuppressLint("NewApi")
+fun scheduleAlarm(context: Context, alarmUiState: AlarmUiState, intent: Intent) {
+    val alarmManager: AlarmManager = context.getSystemService(AlarmManager::class.java)
+
+    intent.apply {
+        if (alarmUiState.selectedAlarmSound == null) {
+            putExtra("soundUri", "hai rahul")
+        } else {
+            putExtra("soundUri", "Hello")
+        }
+    }
+
+    val pendingIntent: PendingIntent = PendingIntent.getBroadcast(
+        context,
+        0,
+        intent,
+        PendingIntent.FLAG_UPDATE_CURRENT
+    )
+
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (alarmManager.canScheduleExactAlarms()) {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                alarmUiState.timeMillis,
+                pendingIntent
+            )
+        } else {
+            requestExactAlarmPermission(context)
+        }
+    } else {
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            alarmUiState.timeMillis,
+            pendingIntent
+        )
+    }
+}
+
+@SuppressLint("NewApi")
+fun requestExactAlarmPermission(context: Context) {
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+    if (!alarmManager.canScheduleExactAlarms()) {
+        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+        context.startActivity(intent)
     }
 }
 

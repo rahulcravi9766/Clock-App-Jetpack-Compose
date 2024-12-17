@@ -5,12 +5,15 @@ import android.media.MediaPlayer
 import android.util.Log
 import com.example.composelearnings.data.AlarmSounds
 import java.time.LocalTime
+import java.util.Calendar
 
 data class AlarmUiState(
     val title: String = "",
     val canVibrate: Boolean = false,
     val openTimePicker: Boolean = false,
     val selectedTime: String = "Select Time",
+    val selectedTimeData: Calendar? = null,
+    val timeMillis: Long = 0,
     val selectedDay: String = "",
     val selectedDaysIndexed: MutableList<Pair<String, Int>> = mutableListOf(),
     val isDaySelected: Boolean = false,
@@ -19,7 +22,7 @@ data class AlarmUiState(
     val selectedAlarmSound: AlarmSounds? = null,
     val selectedAlarmText: String = "",
     val mediaPlayer: MediaPlayer? = null,
-
+    val hasAlarmScheduled: Boolean = false
 )
 
 @SuppressLint("NewApi")

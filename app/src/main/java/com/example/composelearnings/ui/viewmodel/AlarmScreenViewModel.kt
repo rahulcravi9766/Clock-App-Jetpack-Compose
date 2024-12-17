@@ -36,17 +36,11 @@ class AlarmScreenViewModel : ViewModel() {
     )
 
     fun setUpAlarmSound() {
-        if (_uiState.value.selectedAlarmSound == null){
-            Log.d("AlarmScreenViewModel", "selectedAlarmSound: is null")
 
-        }else{
-            Log.d("AlarmScreenViewModel", "selectedAlarmSound: is not null")
-
-        }
         _uiState.update { currentState ->
-            if (currentState.selectedAlarmSound == null){
+            if (currentState.selectedAlarmSound == null) {
                 currentState.copy(alarmSound = alarms, selectedAlarmSound = alarms[0])
-            }else{
+            } else {
                 currentState.copy(alarmSound = alarms)
             }
         }
@@ -118,11 +112,13 @@ class AlarmScreenViewModel : ViewModel() {
         val cal = Calendar.getInstance()
         cal.set(Calendar.HOUR_OF_DAY, value.hour)
         cal.set(Calendar.MINUTE, value.minute)
+        cal.set(Calendar.SECOND, 0)
         cal.isLenient = false
         val formatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
         val currentTime = formatter.format(cal.time)
         formatter.format(cal.time)
 
+        Log.d("timeMilli", "${cal.timeInMillis}")
         _uiState.update { currentState ->
             currentState.copy(
                 selectedTime = currentTime,
@@ -131,7 +127,10 @@ class AlarmScreenViewModel : ViewModel() {
                     value.minute,
                     _uiState.value.isDaySelected,
                     _uiState.value.selectedDaysIndexed
-                )
+                ),
+                selectedTimeData = cal,
+                timeMillis = cal.timeInMillis,
+                hasAlarmScheduled = true
             )
         }
     }

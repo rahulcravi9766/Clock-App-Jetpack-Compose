@@ -51,7 +51,7 @@ fun BottomNavigationScreen() {
     )
 
     var selectedIconIndex by rememberSaveable {
-        mutableIntStateOf(0)
+        mutableIntStateOf(3)
     }
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -101,6 +101,7 @@ fun BottomNavigationScreen() {
                 }
 
                 3 -> {
+                    StopWatchScreen(modifier = Modifier.padding(paddingValues))
                 }
 
             }
