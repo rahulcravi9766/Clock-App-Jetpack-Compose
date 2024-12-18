@@ -50,6 +50,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.composelearnings.R
 import com.example.composelearnings.ui.state.StopWatchUiState
 import com.example.composelearnings.ui.viewmodel.StopWatchScreenViewModel
+import com.example.composelearnings.utils.Common
 
 @Composable
 fun StopWatchScreen(modifier: Modifier, viewModel: StopWatchScreenViewModel = viewModel()) {
@@ -85,7 +86,7 @@ fun StopWatchScreen(modifier: Modifier, viewModel: StopWatchScreenViewModel = vi
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (stopWatchUiState.milliSecond != "00" || stopWatchUiState.second != "00") {
+            if (stopWatchUiState.milliSecond != Common.MILLISECOND || stopWatchUiState.second != Common.SECONDS) {
                 RefreshButton(50.dp, Icons.Default.Refresh, viewModel, true) {
                     viewModel.onRefreshButtonClick()
                 }
