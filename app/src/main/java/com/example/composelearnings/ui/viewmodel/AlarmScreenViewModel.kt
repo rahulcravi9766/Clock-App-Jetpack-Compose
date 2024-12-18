@@ -2,12 +2,14 @@ package com.example.composelearnings.ui.viewmodel
 
 import android.media.MediaPlayer
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TimePickerState
 import androidx.lifecycle.ViewModel
 import com.example.composelearnings.R
 import com.example.composelearnings.data.AlarmSounds
+import com.example.composelearnings.data.SelectedDays
 import com.example.composelearnings.ui.state.AlarmUiState
 import com.example.composelearnings.ui.state.getDayString
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,8 +36,13 @@ class AlarmScreenViewModel : ViewModel() {
     )
 
     fun setUpAlarmSound() {
+
         _uiState.update { currentState ->
-            currentState.copy(alarmSound = alarms)
+            if (currentState.selectedAlarmSound == null) {
+                currentState.copy(alarmSound = alarms, selectedAlarmSound = alarms[0])
+            } else {
+                currentState.copy(alarmSound = alarms)
+            }
         }
     }
 
@@ -71,23 +78,29 @@ class AlarmScreenViewModel : ViewModel() {
         return value
     }
 
-    fun selectedDays(days: MutableList<Int>, index: Int) {
-        if (days.contains(index)) {
-            days.remove(index)
+    fun selectedDays(
+        index: Int,
+        day: String,
+        days: MutableList<Pair<String, Int>>
+    ) {
+
+
+        if (!days.any { it.first == day }) {
+            days.add(Pair(day, index))
         } else {
-            days.add(index)
+            days.remove(Pair(day, index))
         }
 
 
         _uiState.update { currentState ->
             currentState.copy(
-                selectedDays = days,
+                selectedDaysIndexed = days,
                 isDaySelected = days.isNotEmpty(),
                 selectedDay = getDayString(
                     timePicker?.hour ?: 0,
                     timePicker?.minute ?: 0,
                     days.isNotEmpty(),
-                    _uiState.value.selectedDays
+                    _uiState.value.selectedDaysIndexed
                 )
             )
         }
@@ -99,16 +112,30 @@ class AlarmScreenViewModel : ViewModel() {
         val cal = Calendar.getInstance()
         cal.set(Calendar.HOUR_OF_DAY, value.hour)
         cal.set(Calendar.MINUTE, value.minute)
+        cal.set(Calendar.SECOND, 0)
         cal.isLenient = false
         val formatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
         val currentTime = formatter.format(cal.time)
         formatter.format(cal.time)
 
+        Log.d("timeMilli", "${cal.timeInMillis}")
         _uiState.update { currentState ->
             currentState.copy(
                 selectedTime = currentTime,
-                selectedDay = getDayString(value.hour, value.minute, _uiState.value.isDaySelected, _uiState.value.selectedDays)
+                selectedDay = getDayString(
+                    value.hour,
+                    value.minute,
+                    _uiState.value.isDaySelected,
+                    _uiState.value.selectedDaysIndexed
+                ),
+                selectedTimeData = cal,
+                timeMillis = cal.timeInMillis,
+                hasAlarmScheduled = true
             )
         }
+    }
+
+    fun selectRingtone() {
+
     }
 }

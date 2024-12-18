@@ -19,6 +19,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import com.example.composelearnings.R
 import com.example.composelearnings.data.BottomNavigationItem
 
@@ -51,7 +52,7 @@ fun BottomNavigationScreen() {
     )
 
     var selectedIconIndex by rememberSaveable {
-        mutableIntStateOf(0)
+        mutableIntStateOf(3)
     }
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -60,7 +61,7 @@ fun BottomNavigationScreen() {
         Scaffold(topBar = {
             TopAppBar(
                 title = {
-                    Text(text = items[selectedIconIndex].title)
+                    Text(text = items[selectedIconIndex].title, fontWeight = FontWeight.SemiBold)
                 },
             )
         },
@@ -101,6 +102,7 @@ fun BottomNavigationScreen() {
                 }
 
                 3 -> {
+                    StopWatchScreen(modifier = Modifier.padding(paddingValues))
                 }
 
             }
