@@ -63,7 +63,7 @@ fun StopWatchScreen(modifier: Modifier, viewModel: StopWatchScreenViewModel = vi
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Row(modifier = Modifier.weight(4f), verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = Modifier.weight(4f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
             Box(
                 modifier = Modifier
                     .size(300.dp)
@@ -115,22 +115,27 @@ fun BlinkingText(stopWatchUiState: StopWatchUiState, viewModel: StopWatchScreenV
     )
 
     val textColor = if (alpha > 0.5f && viewModel.isPaused) Color.Transparent else Color.Black
-    Column {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        val minutes = if (stopWatchUiState.minute.isNotEmpty()){
+            "${stopWatchUiState.minute}:"
+        }else{
+            ""
+        }
         Text(
-            text = stopWatchUiState.second,
+            text = "$minutes${stopWatchUiState.second}",
             fontSize = 70.sp,
             fontWeight = FontWeight.W400,
             color = textColor
         )
-        Row {
-            Spacer(modifier = Modifier.width(30.dp))
+  //      Row(horizontalArrangement = Arrangement.Center) {
+//            Spacer(modifier = Modifier.width(30.dp))
             Text(
                 text = stopWatchUiState.milliSecond,
                 fontSize = 40.sp,
                 fontWeight = FontWeight.W400,
                 color = textColor
             )
-        }
+      //  }
     }
 }
 

@@ -21,6 +21,8 @@ class StopWatchScreenViewModel : ViewModel() {
     private var elapsedMillis = 0L
     private var seconds: Long = 0
     private var milliseconds: Long = 0
+    private var totalSeconds: Long = 0
+    private var minutes: Long = 0
 
     fun onPlayPauseButtonClick(value: Boolean) {
 
@@ -35,7 +37,9 @@ class StopWatchScreenViewModel : ViewModel() {
             while (value && !isPaused) {
                 delay(10L)
                 elapsedMillis += 10L
-                seconds = elapsedMillis / 1000
+                totalSeconds = elapsedMillis / 1000
+                minutes = totalSeconds / 60
+                seconds = totalSeconds % 60
                 milliseconds = elapsedMillis % 1000 / 10
                 Log.d("stopwatch", "$seconds.$milliseconds")
                 _uiState.update { currentState ->
@@ -49,7 +53,8 @@ class StopWatchScreenViewModel : ViewModel() {
                             "0$seconds"
                         } else {
                             seconds
-                        }).toString()
+                        }).toString(),
+                        minute = minutes.toString()
                     )
                 }
             }
@@ -68,6 +73,7 @@ class StopWatchScreenViewModel : ViewModel() {
             currentState.copy(
                 milliSecond = "00",
                 second = "00",
+                minute = "",
                 isPlaying = false
             )
         }
