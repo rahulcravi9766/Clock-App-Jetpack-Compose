@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ComposeLearnings"
+rootProject.name = "Tik TIk"
 include(":app")
  

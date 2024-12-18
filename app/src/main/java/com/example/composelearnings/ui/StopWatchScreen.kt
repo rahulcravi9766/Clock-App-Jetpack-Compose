@@ -1,7 +1,11 @@
 package com.example.composelearnings.ui
 
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -44,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.composelearnings.R
+import com.example.composelearnings.ui.state.StopWatchUiState
 import com.example.composelearnings.ui.viewmodel.StopWatchScreenViewModel
 
 @Composable
@@ -69,16 +74,8 @@ fun StopWatchScreen(modifier: Modifier, viewModel: StopWatchScreenViewModel = vi
                     .background(color = MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
 
-            ){
-                Column{
-                    Text(text = "00", fontSize = 70.sp, fontWeight = FontWeight.W400)
-                    Row {
-                        Spacer(modifier = Modifier.width(30.dp))
-                        Text(text = "00", fontSize = 40.sp, fontWeight = FontWeight.W400)
-                    }
-
-                }
-
+            ) {
+                BlinkingText(stopWatchUiState, viewModel)
             }
         }
 
@@ -90,13 +87,49 @@ fun StopWatchScreen(modifier: Modifier, viewModel: StopWatchScreenViewModel = vi
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            RefreshButton(50.dp, Icons.Default.Refresh, viewModel, true) {
-
+            if (stopWatchUiState.milliSecond != "00" || stopWatchUiState.second != "00") {
+                RefreshButton(50.dp, Icons.Default.Refresh, viewModel, true) {
+                    viewModel.onRefreshButtonClick()
+                }
+            } else {
+                Spacer(modifier = Modifier.size(50.dp))
             }
-            PlayPauseButtons(90.dp, viewModel, stopWatchUiState.isPlaying){
+            PlayPauseButtons(90.dp, stopWatchUiState.isPlaying) {
                 viewModel.onPlayPauseButtonClick(!stopWatchUiState.isPlaying)
             }
             Spacer(modifier = Modifier.size(50.dp))
+        }
+    }
+}
+
+@Composable
+fun BlinkingText(stopWatchUiState: StopWatchUiState, viewModel: StopWatchScreenViewModel){
+    val infiniteTransition = rememberInfiniteTransition(label = "")
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 500),
+            repeatMode = RepeatMode.Reverse
+        ), label = ""
+    )
+
+    val textColor = if (alpha > 0.5f && viewModel.isPaused) Color.Transparent else Color.Black
+    Column {
+        Text(
+            text = stopWatchUiState.second,
+            fontSize = 70.sp,
+            fontWeight = FontWeight.W400,
+            color = textColor
+        )
+        Row {
+            Spacer(modifier = Modifier.width(30.dp))
+            Text(
+                text = stopWatchUiState.milliSecond,
+                fontSize = 40.sp,
+                fontWeight = FontWeight.W400,
+                color = textColor
+            )
         }
     }
 }
@@ -111,11 +144,11 @@ fun RefreshButton(
     onClick: () -> Unit,
 
     ) {
-    var rotationAngle by remember { mutableStateOf(0f) }
+    var rotationAngle by remember { mutableFloatStateOf(0f) }
 
     val animatedRotation by animateFloatAsState(
         targetValue = rotationAngle,
-        animationSpec = tween(durationMillis = 600, easing = LinearEasing)
+        animationSpec = tween(durationMillis = 600, easing = LinearEasing), label = ""
     )
     IconToggleButton(
         modifier = modifier.size(size),
@@ -135,7 +168,9 @@ fun RefreshButton(
             Icon(
                 imageVector = icon,
                 contentDescription = "Check",
-                modifier = Modifier.size(size / 3).rotate(animatedRotation),
+                modifier = Modifier
+                    .size(size / 3)
+                    .rotate(animatedRotation),
                 tint = Color.Black
             )
         }
@@ -145,11 +180,10 @@ fun RefreshButton(
 @Composable
 fun PlayPauseButtons(
     size: Dp,
-    viewModel: StopWatchScreenViewModel,
     isPlaying: Boolean = false,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
-    ) {
+) {
 
 
     IconToggleButton(
@@ -166,20 +200,19 @@ fun PlayPauseButtons(
                 .background(color = MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
         ) {
-            if (isPlaying){
+            if (isPlaying) {
                 Image(
                     painter = painterResource(id = R.drawable.material_symbols__pause),
                     contentDescription = "pause",
                     modifier = Modifier.size(20.dp)
                 )
-            }else{
+            } else {
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
                     contentDescription = "Check",
                     modifier = Modifier.size(size / 3)
                 )
             }
-
         }
     }
 }
