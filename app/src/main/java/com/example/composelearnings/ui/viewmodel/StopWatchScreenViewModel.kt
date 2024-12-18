@@ -72,7 +72,7 @@ class StopWatchScreenViewModel : ViewModel() {
         _uiState.update { currentState ->
             currentState.copy(
                 milliSecond = "00",
-                second = "00",
+                second = "0:00",
                 minute = "",
                 isPlaying = false
             )

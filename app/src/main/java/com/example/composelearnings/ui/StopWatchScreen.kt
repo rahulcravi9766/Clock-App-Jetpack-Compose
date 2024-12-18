@@ -55,8 +55,6 @@ import com.example.composelearnings.ui.viewmodel.StopWatchScreenViewModel
 fun StopWatchScreen(modifier: Modifier, viewModel: StopWatchScreenViewModel = viewModel()) {
 
     val stopWatchUiState by viewModel.uiState.collectAsState()
-
-
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -127,15 +125,13 @@ fun BlinkingText(stopWatchUiState: StopWatchUiState, viewModel: StopWatchScreenV
             fontWeight = FontWeight.W400,
             color = textColor
         )
-  //      Row(horizontalArrangement = Arrangement.Center) {
-//            Spacer(modifier = Modifier.width(30.dp))
+
             Text(
                 text = stopWatchUiState.milliSecond,
                 fontSize = 40.sp,
                 fontWeight = FontWeight.W400,
                 color = textColor
             )
-      //  }
     }
 }
 
