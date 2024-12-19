@@ -3,6 +3,7 @@ package com.example.composelearnings.ui.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.composelearnings.data.TikTikRepository
 import com.example.composelearnings.ui.state.StopWatchUiState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -11,7 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class StopWatchScreenViewModel : ViewModel() {
+class StopWatchScreenViewModel(private val tikTikRepository: TikTikRepository) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StopWatchUiState())
     val uiState = _uiState.asStateFlow()
@@ -78,4 +79,9 @@ class StopWatchScreenViewModel : ViewModel() {
             )
         }
     }
+
+    private fun validateStopWatchData(){
+
+    }
+
 }
