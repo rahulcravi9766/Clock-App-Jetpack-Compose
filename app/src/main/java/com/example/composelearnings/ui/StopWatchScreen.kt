@@ -18,10 +18,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
@@ -32,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,12 +45,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.composelearnings.R
-import com.example.composelearnings.ui.state.StopWatchUiState
+import com.example.composelearnings.data.StopWatchModel
+import com.example.composelearnings.ui.viewmodel.AppViewModelProvider
 import com.example.composelearnings.ui.viewmodel.StopWatchScreenViewModel
 import com.example.composelearnings.utils.Common
 
 @Composable
-fun StopWatchScreen(modifier: Modifier, viewModel: StopWatchScreenViewModel = viewModel()) {
+fun StopWatchScreen(
+    modifier: Modifier,
+    viewModel: StopWatchScreenViewModel = viewModel(factory = AppViewModelProvider.Factory)
+) {
 
     val stopWatchUiState by viewModel.uiState.collectAsState()
     Column(
@@ -62,7 +63,11 @@ fun StopWatchScreen(modifier: Modifier, viewModel: StopWatchScreenViewModel = vi
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Row(modifier = Modifier.weight(4f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+        Row(
+            modifier = Modifier.weight(4f),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
             Box(
                 modifier = Modifier
                     .size(300.dp)
@@ -102,22 +107,22 @@ fun StopWatchScreen(modifier: Modifier, viewModel: StopWatchScreenViewModel = vi
 }
 
 @Composable
-fun BlinkingText(stopWatchUiState: StopWatchUiState, viewModel: StopWatchScreenViewModel){
+fun BlinkingText(stopWatchUiState: StopWatchModel, viewModel: StopWatchScreenViewModel) {
     val infiniteTransition = rememberInfiniteTransition(label = "")
     val alpha by infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = 0f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 500),
+            animation = tween(durationMillis = 700),
             repeatMode = RepeatMode.Reverse
         ), label = ""
     )
 
     val textColor = if (alpha > 0.5f && viewModel.isPaused) Color.Transparent else Color.Black
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        val minutes = if (stopWatchUiState.minute.isNotEmpty()){
+        val minutes = if (stopWatchUiState.minute.isNotEmpty()) {
             "${stopWatchUiState.minute}:"
-        }else{
+        } else {
             ""
         }
         Text(
@@ -127,12 +132,12 @@ fun BlinkingText(stopWatchUiState: StopWatchUiState, viewModel: StopWatchScreenV
             color = textColor
         )
 
-            Text(
-                text = stopWatchUiState.milliSecond,
-                fontSize = 40.sp,
-                fontWeight = FontWeight.W400,
-                color = textColor
-            )
+        Text(
+            text = stopWatchUiState.milliSecond,
+            fontSize = 40.sp,
+            fontWeight = FontWeight.W400,
+            color = textColor
+        )
     }
 }
 
