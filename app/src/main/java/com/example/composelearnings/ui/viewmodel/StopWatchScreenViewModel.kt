@@ -24,12 +24,6 @@ class StopWatchScreenViewModel(private val tikTikRepository: TikTikRepository) :
     private var stopWatchJob: Job? = null
     private var isRunning = false
     var isPaused = false
-    private var elapsedMillis = 0L
-    private var seconds: Long = 0
-    private var milliseconds: Long = 0
-    private var totalSeconds: Long = 0
-    private var minutes: Long = 0
-    private var dbData: StopWatchModel? = null
 
     init {
         getStopWatchData()
@@ -39,8 +33,7 @@ class StopWatchScreenViewModel(private val tikTikRepository: TikTikRepository) :
         viewModelScope.launch {
             tikTikRepository.getStopWatchData().collect { data ->
 
-                if (data != null){
-                   // dbData = data
+                if (data != null) {
                     isPaused = true
                     _uiState.update { state ->
                         state.copy(
@@ -48,14 +41,11 @@ class StopWatchScreenViewModel(private val tikTikRepository: TikTikRepository) :
                             milliSecond = data.milliSecond.toLong().addZero(),
                             second = if (data.second == "0:00") data.second else data.second.toLong()
                                 .addZero(),
-                            minute = data.minute
+                            minute = data.minute,
+                            elapsedMillis = data.elapsedMillis
                         )
                     }
-                    elapsedMillis = data.elapsedMillis
-
-                    Log.d("StopWatchVM", "getStopWatchData: $data")
-                }else{
-                    Log.d("StopWatchVMm", "getStopWatchData: $data")
+                } else {
                     _uiState.update { state ->
                         state.copy(
                             milliSecond = Common.MILLISECOND,
@@ -66,39 +56,11 @@ class StopWatchScreenViewModel(private val tikTikRepository: TikTikRepository) :
                         )
                     }
                 }
-//                data?.let {
-//                    dbData = it
-//                    isPaused = true
-//                    _uiState.update { state ->
-//                        state.copy(
-//                            isPlaying = it.isPlaying,
-//                            milliSecond = it.milliSecond.toLong().addZero(),
-//                            second = if (it.second == "0:00") it.second else it.second.toLong()
-//                                .addZero(),
-//                            minute = it.minute
-//                        )
-//                    }
-//                    elapsedMillis = data.elapsedMillis
-//
-//                    Log.d("StopWatchVM", "getStopWatchData: $data")
-//                } ?: {
-//                    _uiState.update { state ->
-//                        state.copy(
-//                            milliSecond = Common.MILLISECOND,
-//                            second = Common.SECONDS,
-//                            minute = "",
-//                            elapsedMillis = 0L,
-//                            isPlaying = false
-//                        )
-//                    }
-//                }
             }
         }
     }
 
-
     fun onPlayPauseButtonClick(value: Boolean) {
-
         if (value) {
             isRunning = true
             isPaused = false
@@ -110,17 +72,13 @@ class StopWatchScreenViewModel(private val tikTikRepository: TikTikRepository) :
         stopWatchJob = viewModelScope.launch {
             while (value && !isPaused) {
                 delay(10L)
-                elapsedMillis += 10L
-                totalSeconds = elapsedMillis / 1000
-                minutes = totalSeconds / 60
-                seconds = totalSeconds % 60
-                milliseconds = elapsedMillis % 1000 / 10
-                Log.d("stopwatch", "$seconds.$milliseconds")
+                _uiState.value.elapsedMillis += 10L
+               val totalSeconds = _uiState.value.elapsedMillis / 1000
                 _uiState.update { currentState ->
                     currentState.copy(
-                        milliSecond = milliseconds.addZero(),
-                        second = seconds.addZero(),
-                        minute = minutes.toString()
+                        milliSecond = (_uiState.value.elapsedMillis % 1000 / 10).addZero(),
+                        second = (totalSeconds % 60).addZero(),
+                        minute = (totalSeconds / 60).toString()
                     )
                 }
             }
@@ -135,10 +93,9 @@ class StopWatchScreenViewModel(private val tikTikRepository: TikTikRepository) :
         isPaused = false
         stopWatchJob?.cancel()
         viewModelScope.launch {
-            async {
-                tikTikRepository.deleteAllData()
-            }.await()
-           getStopWatchData()
+            val deleteData = async { tikTikRepository.deleteAllData() }
+            getStopWatchData()
+            deleteData.await()
         }
     }
 
@@ -146,19 +103,12 @@ class StopWatchScreenViewModel(private val tikTikRepository: TikTikRepository) :
         viewModelScope.launch {
             val data = StopWatchModel(
                 id = 1,
-                milliSecond = milliseconds.plus(1).toString(),
-                second = seconds.toString(),
-                minute = minutes.toString(),
-                elapsedMillis = elapsedMillis,
+                milliSecond = _uiState.value.milliSecond,
+                second = _uiState.value.second,
+                minute = _uiState.value.minute,
+                elapsedMillis = _uiState.value.elapsedMillis,
             )
             tikTikRepository.insertOrUpdateStopWatchData(data)
         }
-
-        Log.d(
-            "CurrentStoppedTime",
-            "minutes: $minutes, seconds: $seconds, milliseconds: ${_uiState.value.milliSecond} , ${
-                milliseconds.plus(1)
-            }"
-        )
     }
 }
