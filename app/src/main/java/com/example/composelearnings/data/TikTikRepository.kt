@@ -5,8 +5,10 @@ import kotlinx.coroutines.flow.Flow
 
 interface TikTikRepository {
 
-    fun getStopWatchData(): Flow<StopWatchModel>
+    fun getStopWatchData(): Flow<StopWatchModel?>
 
-    suspend fun insertStopWatchData(stopWatchModel: StopWatchModel)
+    suspend fun insertOrUpdateStopWatchData(stopWatchModel: StopWatchModel)
+
+    suspend fun deleteAllData()
 }
 

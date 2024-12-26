@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.example.composelearnings.data.StopWatchModel
 
-@Database(entities = [StopWatchModel::class], version = 1, exportSchema = true)
+@Database(entities = [StopWatchModel::class], version = 2, exportSchema = true)
 abstract class TikTikDatabase : RoomDatabase() {
 
     abstract fun tikTikDao(): TikTikDao
@@ -20,7 +20,7 @@ abstract class TikTikDatabase : RoomDatabase() {
                     context.applicationContext,
                     TikTikDatabase::class.java,
                     "tik_tik_database"
-                ).build().also { INSTANCE = it }
+                ).fallbackToDestructiveMigration().build().also { INSTANCE = it }
             }
         }
     }

@@ -6,10 +6,11 @@ import com.example.composelearnings.utils.Common
 
 @Entity(tableName = "stop_watch_table")
 data class StopWatchModel(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @PrimaryKey(autoGenerate = false)
+    val id: Int = 1,
     val milliSecond: String = Common.MILLISECOND,
     val second: String = Common.SECONDS,
+    var elapsedMillis: Long = 0L,
     val minute: String = "",
     val isPlaying: Boolean = false,
 )
