@@ -11,6 +11,9 @@ object AppViewModelProvider {
         initializer {
             StopWatchScreenViewModel(tikTikApplication().container.tikTikRepository)
         }
+        initializer {
+            TimerScreenViewModel(tikTikApplication().container.tikTikRepository)
+        }
     }
 }
 
